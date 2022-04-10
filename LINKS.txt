@@ -1,1 +1,1 @@
-https://github.com/LegioniteTerraTech/LazyAPs/GitAccess
+https://github.com/LegioniteTerraTech/LazyAPs/tree/master/GitAccess
