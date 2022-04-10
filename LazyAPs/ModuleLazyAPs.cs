@@ -1,0 +1,241 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+using RandomAdditions;
+
+// For Easy Access
+public class ModuleLazyAPs : LazyAPs.ModuleLazyAPs { };
+namespace LazyAPs
+{
+    // throw APs on blocks that have this module
+    /*
+        "ModuleLazyAPs":{ // Add AP meshes to your blocks
+          "DoApply": true,          // Do we apply the APs here?
+          "CorpToApplyTo": "TAC",   // Official AP Corp to apply to
+          "IDStartRange": 0,        // Unofficial AP start range
+          "IDEndRange": 0,          // Unofficial AP end range
+        },
+     */
+    public class ModuleLazyAPs : ExtModule
+    {
+        public bool DoApply = true;
+        public string CorpToApplyTo = null;
+        public int IDStartRange = 0;
+        public int IDEndRange = 0;
+
+        private Transform CopyTarget;
+        private bool AppliedAPs = false;
+
+        protected override void Pool()
+        {
+            if (!DoApply)
+                return;
+            TryApplyAPs();
+            if (Singleton.Manager<ManSpawn>.inst.IsTankBlockLoaded(block.BlockType))
+            {
+                var searchup = Singleton.Manager<ManSpawn>.inst.GetBlockPrefab(block.BlockType);
+                if ((bool)searchup)
+                {
+                    var aps = searchup.GetComponent<ModuleLazyAPs>();
+                    if ((bool)aps)
+                    {
+                        aps.TryApplyAPs();
+                    }
+                }
+            }
+        }
+        private void TryApplyAPs()
+        {
+            if (AppliedAPs)
+                return;
+            TankBlock block = GetComponent<TankBlock>();
+            if (!(bool)block)
+                return;
+            TankBlock searchup = null;
+            if ((bool)CopyTarget)
+                CopyTarget = searchup.transform.Find("_APTemp");
+            else // Resort to local
+                CopyTarget = transform.Find("_APTemp");
+            if (CopyTarget != null)
+            {
+                if (transform.Find("LazyAP_0"))
+                    return;
+                int totAP = block.attachPoints.Count();
+                for (int step = 0; step < totAP; step++)
+                {
+                    try
+                    {
+                        Vector3 APPos = block.attachPoints.ElementAt(step);
+                        IntVector3 CellPos = block.GetFilledCellForAPIndex(step);
+
+                        var newAP = Instantiate(CopyTarget, transform, false);
+                        newAP.name = "LazyAP_" + step;
+                        newAP.gameObject.SetActive(true);
+                        newAP.localScale = Vector3.one;
+                        newAP.localPosition = CellPos;
+                        Vector3 FaceDirect = (APPos - CellPos).normalized;
+                        newAP.localRotation = Quaternion.LookRotation(FaceDirect, FaceDirect.y.Approximately(0) ? Vector3.up : Vector3.forward);
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            LogHandler.ThrowWarning("LazyAPs: Invalid AP in " + block.name + "!  AP number " + step);
+                        }
+                        catch { }
+                    }
+                }
+                Debug.Log("LazyAPs: Set up lazy APs for " + block.name);
+            }
+            else
+            {
+                try
+                {
+                    LogHandler.ThrowWarning("LazyAPs: Could not find target \"_APTemp\" for block " + block.name + "!");
+                }
+                catch { }
+            }
+            AppliedAPs = true;
+        }
+
+
+        internal static FieldInfo access = typeof(ManMods).GetField("m_CurrentSession", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        internal void TryApplyAPsToOtherBlock(TankBlock blockToApplyTo)
+        {
+            if (!(bool)blockToApplyTo)
+                return;
+#if STEAM
+            FactionSubTypes FST = ManSpawn.inst.GetCorporation(block.BlockType);
+            if (ManMods.inst.IsModdedBlock(blockToApplyTo.BlockType))
+            {
+                if (ManSpawn.inst.GetCorporation(blockToApplyTo.BlockType) != FST)
+                    return;
+            }
+            else
+                return;
+#else
+            int bID = (int)blockToApplyTo.BlockType;
+            if (bID > IDEndRange || bID < IDStartRange)
+                return;
+#endif
+            if (!CopyTarget)
+                CopyTarget = transform.Find("_APTemp");
+            if (CopyTarget != null)
+            {
+                if (blockToApplyTo.trans.Find("LazyAP_0"))
+                    return;
+                int totAP = blockToApplyTo.attachPoints.Count();
+                for (int step = 0; step < totAP; step++)
+                {
+                    try
+                    {
+                        Vector3 APPos = blockToApplyTo.attachPoints.ElementAt(step);
+                        IntVector3 CellPos = blockToApplyTo.GetFilledCellForAPIndex(step);
+
+                        var newAP = Instantiate(CopyTarget, blockToApplyTo.trans, false);
+                        newAP.name = "LazyAP_" + step;
+                        newAP.gameObject.SetActive(true);
+                        newAP.localScale = Vector3.one;
+                        newAP.localPosition = CellPos;
+                        Vector3 FaceDirect = (APPos - CellPos).normalized;
+                        newAP.localRotation = Quaternion.LookRotation(FaceDirect, FaceDirect.y.Approximately(0) ? Vector3.up : Vector3.forward);
+                    }
+                    catch { }
+                }
+                Debug.Log("LazyAPs: Set up lazy APs for " + blockToApplyTo.name);
+            }
+            AppliedAPs = true;
+        }
+    }
+
+    internal class ManLazyAPs
+    {
+        private static List<ModuleLazyAPs> Replacables = new List<ModuleLazyAPs>();
+
+        public static void AddBlock(ModuleLazyAPs rp)
+        {
+            try
+            {
+                ModuleLazyAPs match = Replacables.Find(delegate (ModuleLazyAPs cand) { return cand.CorpToApplyTo == rp.CorpToApplyTo; });
+                if (!match)
+                {
+                    Replacables.Add(rp);
+                    Debug.Log("LazyAPs: ManLazyAPs - Registered " + rp.name);
+                }
+                else
+                {
+                    Replacables.Remove(match);
+                    Replacables.Add(rp);
+                    Debug.Log("LazyAPs: ManLazyAPs - ReRegistered " + rp.name);
+                }
+            }
+            catch { }
+        }
+        public static void RemoveAllBlocks()
+        {
+            Replacables.Clear();
+        }
+
+        public static void TryAddAPs(TankBlock blockToAddTo)
+        {
+            foreach (var item in Replacables)
+            {
+                try
+                {
+                    item.TryApplyAPsToOtherBlock(blockToAddTo);
+                }
+                catch { }
+            }
+        }
+    }
+
+    // Do not use any of these alone. They will do nothing useful.
+    /// <summary>
+    /// Used solely for this mod for modules compat with MP
+    /// </summary>
+    public class ExtModule : MonoBehaviour
+    {
+        public TankBlock block { get; private set; }
+        public Tank tank => block.tank;
+        public ModuleDamage dmg { get; private set; }
+
+        /// <summary>
+        /// Always fires first before the module
+        /// </summary>
+        public void OnPool()
+        {
+            if (!block)
+            {
+                block = gameObject.GetComponent<TankBlock>();
+                if (!block)
+                {
+                    LogHandler.ThrowWarning("LazyAPs: Modules must be in the lowest JSONBLOCK/Deserializer GameObject layer!\nThis operation cannot be handled automatically.\nCause of error - Block " + gameObject.name);
+                    enabled = false;
+                    return;
+                }
+                dmg = gameObject.GetComponent<ModuleDamage>();
+                try
+                {
+                    block.AttachEvent.Subscribe(OnAttach);
+                    block.DetachEvent.Subscribe(OnDetach);
+                }
+                catch
+                {
+                    Debug.LogError("LazyAPs: ExtModule - TankBlock is null");
+                    enabled = false;
+                    return;
+                }
+                enabled = true;
+                Pool();
+            }
+        }
+        protected virtual void Pool() { }
+        public virtual void OnAttach() { }
+        public virtual void OnDetach() { }
+
+
+    }
+}

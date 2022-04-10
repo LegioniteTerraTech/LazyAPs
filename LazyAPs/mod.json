@@ -1,0 +1,9 @@
+﻿{
+  "Id": "legionite.lazyaps",
+  "DisplayName": "Lazy Attachment Points",
+  "Author": "Legionite",
+  "Version": "0.1.0",
+  "Enable": true,
+  "AssemblyName": "LazyAPs.dll",
+  "EntryMethod": "LazyAPs.KickStart.Main"
+}
