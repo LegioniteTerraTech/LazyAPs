@@ -176,10 +176,8 @@ namespace LazyAPs
             if (ManMods.inst.IsModdedBlock(blockToApplyTo.BlockType))
             {
                 if (ManSpawn.inst.GetCorporation(blockToApplyTo.BlockType) != FST)
-                    return;
+                    return false;
             }
-            else
-                return;
 #else
             int bID = (int)blockToApplyTo.BlockType;
             if (bID > IDEndRange || bID < IDStartRange)
