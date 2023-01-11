@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using RandomAdditions;
+using TerraTechETCUtil;
 
 // For Easy Access
 public class ModuleLazyAPs : LazyAPs.ModuleLazyAPs { };
@@ -31,6 +31,7 @@ namespace LazyAPs
         {
             if (!DoApply)
                 return;
+            ManLazyAPs.AddBlock(this);
             TryApplyAPs();
             if (Singleton.Manager<ManSpawn>.inst.IsTankBlockLoaded(block.BlockType))
             {
@@ -82,7 +83,7 @@ namespace LazyAPs
                     {
                         try
                         {
-                            LogHandler.ThrowWarning("LazyAPs: Invalid AP in " + block.name + "!  AP number " + step);
+                            //LogHandler.ThrowWarning("LazyAPs: Invalid AP in " + block.name + "!  AP number " + step);
                         }
                         catch { }
                     }
@@ -133,7 +134,7 @@ namespace LazyAPs
             {
                 try
                 {
-                    LogHandler.ThrowWarning("LazyAPs: Could not find target \"_APTemp\" for block " + block.name + "!");
+                    //LogHandler.ThrowWarning("LazyAPs: Could not find target \"_APTemp\" for block " + block.name + "!");
                 }
                 catch { }
             }
@@ -375,15 +376,14 @@ namespace LazyAPs
                 block = gameObject.GetComponent<TankBlock>();
                 if (!block)
                 {
-                    LogHandler.ThrowWarning("LazyAPs: Modules must be in the lowest JSONBLOCK/Deserializer GameObject layer!\nThis operation cannot be handled automatically.\nCause of error - Block " + gameObject.name);
+                    //LogHandler.ThrowWarning("LazyAPs: Modules must be in the lowest JSONBLOCK/Deserializer GameObject layer!\nThis operation cannot be handled automatically.\nCause of error - Block " + gameObject.name);
                     enabled = false;
                     return;
                 }
                 dmg = gameObject.GetComponent<ModuleDamage>();
                 try
                 {
-                    block.AttachEvent.Subscribe(OnAttach);
-                    block.DetachEvent.Subscribe(OnDetach);
+                    block.SubToBlockAttachConnected(OnAttach, OnDetach);
                 }
                 catch
                 {

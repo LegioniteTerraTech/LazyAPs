@@ -39,6 +39,9 @@
     <!--> zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz </!-->
     <!--> THE MATTERS BELOW ARE OFFICIAL </!-->
     <!--> zzzzzzzzzzzzzzzzzzzzzzzzzzzzzz </!-->
+    <Reference Include="TerraTechETCUtil">
+      <HintPath>..\..\..\TTETCUtil\TerraTechETCUtil\TerraTechETCUtil\obj\Steam\TerraTechETCUtil.dll</HintPath>
+    </Reference>
     <Reference Include="0Harmony">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\workshop\content\285920\2571814511\0Harmony.dll</HintPath>
       <Private>False</Private>
@@ -52,6 +55,9 @@
     <!--> zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz </!-->
     <!--> THE MATTERS BELOW ARE UNOFFICIAL </!-->
     <!--> zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz </!-->
+    <Reference Include="TerraTechETCUtil">
+      <HintPath>..\..\..\TTETCUtil\TerraTechETCUtil\TerraTechETCUtil\obj\Release\TerraTechETCUtil.dll</HintPath>
+    </Reference>
     <Reference Include="0Harmony">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\TerraTech\TerraTechWin64_Data\Managed\0Harmony.dll</HintPath>
       <Private>False</Private>
