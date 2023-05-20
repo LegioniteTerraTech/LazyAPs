@@ -286,7 +286,7 @@ namespace LazyAPs
                 return;
             inst = new GameObject("ManLazyAPs").AddComponent<ManLazyAPs>();
         }
-
+         
         public static void AddBlock(ModuleLazyAPs rp)
         {
             try
@@ -295,7 +295,7 @@ namespace LazyAPs
                 if (!match)
                 {
                     Replacables.Add(rp);
-                    Debug.Log("LazyAPs: ManLazyAPs - Registered " + rp.name);
+                    Debug.Log("LazyAPs: ManLazyAPs - Registered " + rp.name); 
                 }
                 else
                 {
